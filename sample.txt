@@ -1,0 +1,9 @@
+transcript meeting 1/23/26
+
+Client: I want a to do list app to track my tasks.
+You: sure, what features do you want with it?
+Client: I just want something simple, a clean UI would be preferred. I don't care about the technicalities.
+You: i guess to make things quick lets just write it in typescript and using react.
+Client: I don't know what that is but sure, lets go with that.
+
+---end---
