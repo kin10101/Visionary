@@ -42,20 +42,32 @@ export function useSSE() {
           const lines = buffer.split('\n');
           buffer = lines.pop() || '';
 
-          for (const line of lines) {
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
             if (line.startsWith('event: done')) {
-              const nextDataLine = lines[lines.indexOf(line) + 1];
+              const nextDataLine = lines[i + 1];
               if (nextDataLine?.startsWith('data: ')) {
                 options.onDone?.(nextDataLine.slice(6));
+                i++;
               }
             } else if (line.startsWith('data: ')) {
-              options.onToken(line.slice(6));
+              try {
+                const token = JSON.parse(line.slice(6));
+                options.onToken(token);
+              } catch {
+                options.onToken(line.slice(6));
+              }
             }
           }
         }
 
         if (buffer.startsWith('data: ')) {
-          options.onToken(buffer.slice(6));
+          try {
+            const token = JSON.parse(buffer.slice(6));
+            options.onToken(token);
+          } catch {
+            options.onToken(buffer.slice(6));
+          }
         }
       } catch (err: unknown) {
         if ((err as Error).name !== 'AbortError') {

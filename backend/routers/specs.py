@@ -116,10 +116,11 @@ async def generate_spec(spec_id: str, data: GenerateRequest = None, db: AsyncSes
         raise HTTPException(400, "No context uploaded. Upload files first.")
 
     async def event_stream():
+        import json
         full_content = ""
         async for token in run_generate_stream(spec.title, context_text):
             full_content += token
-            yield f"data: {token}\n\n"
+            yield f"data: {json.dumps(token)}\n\n"
         async with async_session_factory() as session:
             s = await session.get(Spec, spec_id)
             new_version_num = s.current_version + 1
@@ -154,12 +155,13 @@ async def revise_spec(spec_id: str, data: ReviseRequest, db: AsyncSession = Depe
     current_markdown = current_version.content_markdown
 
     async def event_stream():
+        import json
         revised_section_content = ""
         async for token in run_revise_stream(
             current_markdown, data.section, data.feedback
         ):
             revised_section_content += token
-            yield f"data: {token}\n\n"
+            yield f"data: {json.dumps(token)}\n\n"
         # Splice revised section back into the full spec
         from graph.nodes import _replace_section
         full_content = _replace_section(current_markdown, data.section, revised_section_content)

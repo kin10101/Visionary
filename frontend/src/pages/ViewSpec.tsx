@@ -11,6 +11,7 @@ import {
   ChevronLeft, ChevronRight, Loader2, RotateCcw,
   MessageSquarePlus, Download, CheckCircle2,
 } from 'lucide-react';
+import { marked } from 'marked';
 
 export default function ViewSpec() {
   const { id } = useParams<{ id: string }>();
@@ -197,7 +198,7 @@ export default function ViewSpec() {
               editable={true}
             />
           ) : (
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-5xl mx-auto">
               {sections.map((section) => (
                 <div key={section.title} id={`section-${section.title}`} className="mb-8">
                   <div className="flex items-center justify-between mb-2">
@@ -221,19 +222,24 @@ export default function ViewSpec() {
 
                   {revisingSection === section.title ? (
                     <div className="relative">
-                      <div className="absolute top-2 right-2 flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded z-10">
                         <Loader2 size={12} className="animate-spin" /> Revising...
                       </div>
                       <div className="border border-blue-200 rounded-lg p-4 bg-blue-50/30 min-h-[60px]">
-                        <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                          {streamedContent || <span className="text-sm text-gray-400 italic">Generating revised content...</span>}
-                        </div>
+                        {streamedContent ? (
+                          <div
+                            className="prose prose-sm max-w-none text-gray-700"
+                            dangerouslySetInnerHTML={{ __html: renderSection(streamedContent) }}
+                          />
+                        ) : (
+                          <span className="text-sm text-gray-400 italic">Generating revised content...</span>
+                        )}
                       </div>
                     </div>
                   ) : (
                     <div
-                      className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: highlightAssumptions(section.content) }}
+                      className="prose prose-sm max-w-none text-gray-700"
+                      dangerouslySetInnerHTML={{ __html: renderSection(section.content) }}
                     />
                   )}
 
@@ -472,4 +478,9 @@ function highlightAssumptions(text: string): string {
     /\*\*\*(.+?)\*\*\*/g,
     '<span class="border-l-4 border-amber-400 bg-amber-50 px-2 py-0.5 italic font-medium text-amber-800 inline-block my-0.5">$1</span>'
   );
+}
+
+function renderSection(content: string): string {
+  const html = marked.parse(content, { async: false }) as string;
+  return highlightAssumptions(html);
 }
